@@ -53,7 +53,7 @@ func (ps *PodState) Score(ctx context.Context, state *framework.CycleState, pod 
 
 	// fmt.Printf("Razvan LOG - PodState: Evaluating node %s.\n", nodeName)
 	currentTime := time.Now().UnixNano() / int64(time.Millisecond)
-	fmt.Printf("{ \"timestamp\": %d, \"pod\": %q, \"node\": %q, \"score\": %d }\n", 
+	fmt.Printf("{ \"plugin\": \"PodState\",\"timestamp\": %d, \"pod\": %q, \"node\": %q, \"score\": %d }\n", 
 				currentTime, pod.Name, nodeName, podScore)
 	// fmt.Printf("The score is %d.\n", pod_score)
 

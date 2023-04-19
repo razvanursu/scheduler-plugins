@@ -19,6 +19,7 @@ package customnodeaffinity
 import (
 	"context"
 	"fmt"
+	"time"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -180,7 +181,10 @@ func (pl *NodeAffinity) Score(ctx context.Context, state *framework.CycleState, 
 		count += s.preferredNodeAffinity.Score(node)
 	}
 
-	fmt.Println("Hello from CustomNodeAffinity!")
+	
+	currentTime := time.Now().UnixNano() / int64(time.Millisecond)
+	fmt.Printf("{ \"plugin\": \"CustomNodeAffinity\",\"timestamp\": %d, \"pod\": %q, \"node\": %q, \"score\": %d }\n", 
+				currentTime, pod.Name, nodeName, count)
 
 	return count, nil
 }
