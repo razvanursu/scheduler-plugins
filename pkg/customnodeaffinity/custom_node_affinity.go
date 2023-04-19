@@ -23,8 +23,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/component-helpers/scheduling/corev1/nodeaffinity"
-	"k8s.io/kubernetes/pkg/scheduler/apis/config"
-	"k8s.io/kubernetes/pkg/scheduler/apis/config/validation"
+	"sigs.k8s.io/scheduler-plugins/apis/config"
+	// "k8s.io/kubernetes/pkg/scheduler/apis/config/validation"
 	"k8s.io/kubernetes/pkg/scheduler/framework"
 	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/helper"
 	// "k8s.io/kubernetes/pkg/scheduler/framework/plugins/names"
@@ -201,7 +201,7 @@ func New(plArgs runtime.Object, h framework.Handle) (framework.Plugin, error) {
 	args, err := getArgs(plArgs)
 	if err != nil {
 		return nil, err
-	}
+	} 
 	pl := &NodeAffinity{
 		handle: h,
 	}
@@ -223,12 +223,13 @@ func New(plArgs runtime.Object, h framework.Handle) (framework.Plugin, error) {
 	return pl, nil
 }
 
-func getArgs(obj runtime.Object) (config.NodeAffinityArgs, error) {
-	ptr, ok := obj.(*config.NodeAffinityArgs)
+func getArgs(obj runtime.Object) (config.CustomNodeAffinityArgs, error) {
+	ptr, ok := obj.(*config.CustomNodeAffinityArgs)
 	if !ok {
-		return config.NodeAffinityArgs{}, fmt.Errorf("args are not of type NodeAffinityArgs, got %T", obj)
+		return config.CustomNodeAffinityArgs{}, fmt.Errorf("args are not of type NodeAffinityArgs, got %T", obj)
 	}
-	return *ptr, validation.ValidateNodeAffinityArgs(nil, ptr)
+	// return *ptr, validation.ValidateNodeAffinityArgs(nil, ptr)
+	return *ptr, nil
 }
 
 func getPodPreferredNodeAffinity(pod *v1.Pod) (*nodeaffinity.PreferredSchedulingTerms, error) {
