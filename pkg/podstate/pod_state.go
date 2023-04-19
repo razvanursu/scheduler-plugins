@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"time"
 
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -48,7 +49,15 @@ func (ps *PodState) Score(ctx context.Context, state *framework.CycleState, pod 
 
 	// pe.score favors nodes with terminating pods instead of nominated pods
 	// It calculates the sum of the node's terminating pods and nominated pods
-	return ps.score(nodeInfo)
+	podScore, status := ps.score(nodeInfo)
+
+	// fmt.Printf("Razvan LOG - PodState: Evaluating node %s.\n", nodeName)
+	currentTime := time.Now().UnixNano() / int64(time.Millisecond)
+	fmt.Printf("{ \"timestamp\": %d, \"pod\": %q, \"node\": %q, \"score\": %d }\n", 
+				currentTime, pod.Name, nodeName, podScore)
+	// fmt.Printf("The score is %d.\n", pod_score)
+
+	return podScore, status
 }
 
 // ScoreExtensions of the Score plugin.
