@@ -160,4 +160,7 @@ type CustomNodeAffinityArgs struct {
 	AddedAffinity *v1.NodeAffinity `json:"addedAffinity,omitempty"`
 }
 
+type CustomNodeResourcesFitArgs schedulerconfigv1beta3.NodeResourcesFitArgs
+type RequestedToCapacityRatio schedulerconfigv1beta3.RequestedToCapacityRatioParam
 
+// type ResourceSpec schedulerconfigv1beta3.ResourceSpec

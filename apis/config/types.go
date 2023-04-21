@@ -165,3 +165,8 @@ type CustomNodeAffinityArgs struct {
 	// a specific Node (such as Daemonset Pods) might remain unschedulable.
 	AddedAffinity *v1.NodeAffinity
 }
+
+type CustomNodeResourcesFitArgs schedconfig.NodeResourcesFitArgs
+type RequestedToCapacityRatio schedconfig.RequestedToCapacityRatioParam
+
+// type ResourceSpec schedconfig.ResourceSpec

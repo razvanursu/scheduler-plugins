@@ -20,13 +20,17 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
 	v1helper "k8s.io/kubernetes/pkg/apis/core/v1/helper"
-	"k8s.io/kubernetes/pkg/scheduler/apis/config"
-	"k8s.io/kubernetes/pkg/scheduler/apis/config/validation"
+	apisconfig "k8s.io/kubernetes/pkg/scheduler/apis/config"
+	"sigs.k8s.io/scheduler-plugins/apis/config"
+
+	// "k8s.io/kubernetes/pkg/scheduler/apis/config/validation"
+
 	"k8s.io/kubernetes/pkg/scheduler/framework"
 	"k8s.io/kubernetes/pkg/scheduler/framework/plugins/feature"
 )
@@ -46,27 +50,27 @@ const (
 )
 
 // nodeResourceStrategyTypeMap maps strategy to scorer implementation
-var nodeResourceStrategyTypeMap = map[config.ScoringStrategyType]scorer{
-	config.LeastAllocated: func(args *config.NodeResourcesFitArgs) *resourceAllocationScorer {
+var nodeResourceStrategyTypeMap = map[apisconfig.ScoringStrategyType]scorer{
+	apisconfig.LeastAllocated: func(args *config.CustomNodeResourcesFitArgs) *resourceAllocationScorer {
 		resToWeightMap := resourcesToWeightMap(args.ScoringStrategy.Resources)
 		return &resourceAllocationScorer{
-			Name:                string(config.LeastAllocated),
+			Name:                string(apisconfig.LeastAllocated),
 			scorer:              leastResourceScorer(resToWeightMap),
 			resourceToWeightMap: resToWeightMap,
 		}
 	},
-	config.MostAllocated: func(args *config.NodeResourcesFitArgs) *resourceAllocationScorer {
+	apisconfig.MostAllocated: func(args *config.CustomNodeResourcesFitArgs) *resourceAllocationScorer {
 		resToWeightMap := resourcesToWeightMap(args.ScoringStrategy.Resources)
 		return &resourceAllocationScorer{
-			Name:                string(config.MostAllocated),
+			Name:                string(apisconfig.MostAllocated),
 			scorer:              mostResourceScorer(resToWeightMap),
 			resourceToWeightMap: resToWeightMap,
 		}
 	},
-	config.RequestedToCapacityRatio: func(args *config.NodeResourcesFitArgs) *resourceAllocationScorer {
+	apisconfig.RequestedToCapacityRatio: func(args *config.CustomNodeResourcesFitArgs) *resourceAllocationScorer {
 		resToWeightMap := resourcesToWeightMap(args.ScoringStrategy.Resources)
 		return &resourceAllocationScorer{
-			Name:                string(config.RequestedToCapacityRatio),
+			Name:                string(apisconfig.RequestedToCapacityRatio),
 			scorer:              requestedToCapacityRatioScorer(resToWeightMap, args.ScoringStrategy.RequestedToCapacityRatio.Shape),
 			resourceToWeightMap: resToWeightMap,
 		}
@@ -104,13 +108,13 @@ func (f *Fit) Name() string {
 
 // NewFit initializes a new plugin and returns it.
 func NewFit(plArgs runtime.Object, h framework.Handle, fts feature.Features) (framework.Plugin, error) {
-	args, ok := plArgs.(*config.NodeResourcesFitArgs)
+	args, ok := plArgs.(*config.CustomNodeResourcesFitArgs)
 	if !ok {
 		return nil, fmt.Errorf("want args to be of type NodeResourcesFitArgs, got %T", plArgs)
 	}
-	if err := validation.ValidateNodeResourcesFitArgs(nil, args); err != nil {
-		return nil, err
-	}
+	// if err := validation.ValidateNodeResourcesFitArgs(nil, args); err != nil {
+	// 	return nil, err
+	// }
 
 	if args.ScoringStrategy == nil {
 		return nil, fmt.Errorf("scoring strategy not specified")
@@ -335,5 +339,11 @@ func (f *Fit) Score(ctx context.Context, state *framework.CycleState, pod *v1.Po
 		return 0, framework.AsStatus(fmt.Errorf("getting node %q from Snapshot: %w", nodeName, err))
 	}
 
-	return f.score(pod, nodeInfo)
+	score, status := f.score(pod, nodeInfo)
+
+	currentTime := time.Now().UnixNano() / int64(time.Millisecond)
+	fmt.Printf("{ \"plugin\": \"CustomNodeResourcesFit\",\"timestamp\": %d, \"pod\": %q, \"node\": %q, \"score\": %d }\n",
+		currentTime, pod.Name, nodeName, score)
+
+	return score, status
 }

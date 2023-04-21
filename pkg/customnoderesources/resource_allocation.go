@@ -19,16 +19,17 @@ package customnoderesources
 import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
-	"k8s.io/kubernetes/pkg/scheduler/apis/config"
+	apisconfig "k8s.io/kubernetes/pkg/scheduler/apis/config"
 	"k8s.io/kubernetes/pkg/scheduler/framework"
 	schedutil "k8s.io/kubernetes/pkg/scheduler/util"
+	"sigs.k8s.io/scheduler-plugins/apis/config"
 )
 
 // resourceToWeightMap contains resource name and weight.
 type resourceToWeightMap map[v1.ResourceName]int64
 
 // scorer is decorator for resourceAllocationScorer
-type scorer func(args *config.NodeResourcesFitArgs) *resourceAllocationScorer
+type scorer func(args *config.CustomNodeResourcesFitArgs) *resourceAllocationScorer
 
 // resourceAllocationScorer contains information to calculate resource allocation score.
 type resourceAllocationScorer struct {
@@ -143,7 +144,7 @@ func (r *resourceAllocationScorer) calculatePodResourceRequest(pod *v1.Pod, reso
 }
 
 // resourcesToWeightMap make weightmap from resources spec
-func resourcesToWeightMap(resources []config.ResourceSpec) resourceToWeightMap {
+func resourcesToWeightMap(resources []apisconfig.ResourceSpec) resourceToWeightMap {
 	resourceToWeightMap := make(resourceToWeightMap)
 	for _, resource := range resources {
 		resourceToWeightMap[v1.ResourceName(resource.Name)] = resource.Weight
